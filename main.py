@@ -1,14 +1,17 @@
 import os
-from fastapi import FastAPI
+import io
+import json
+from PyPDF2 import PdfReader
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from groq import Groq
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
 app = FastAPI()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,26 +31,17 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
                 text += page_text + "\n"
         return text
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"PDF oxuna bilmədi: {str(e)}")
 
 @app.post("/analyze")
-async def analyze_cvs(job_description: str = Form(...), files: Any = File(...)):
-    actual_file = None
+async def analyze_cvs(job_description: str = Form(...), file: UploadFile = File(...)):
+    
     try:
-        if isinstance(files, list):
-            if len(files) > 0 and isinstance(files[0], list):
-                actual_file = files[0][0]
-            else:
-                actual_file = files[0]
-        else:
-            actual_file = files
+        cv_bytes = await file.read()
     except Exception:
-        raise HTTPException(status_code=400, detail="Fayl oxunarkən xəta yarandı.")
+        raise HTTPException(status_code=400, detail="Fayl serverə tam yüklənmədi.")
 
-    if not actual_file or not hasattr(actual_file, "read"):
-        raise HTTPException(status_code=400, detail="Fayl düzgün ötürülmədi.")
-
-    cv_bytes = await actual_file.read()
+    # 2. PDF-dən mətni çıxarırıq
     cv_text = extract_text_from_pdf(cv_bytes)
 
     if not cv_text.strip():
@@ -67,7 +61,6 @@ async def analyze_cvs(job_description: str = Form(...), files: Any = File(...)):
     CV Mətni:
     {cv_text}
     """
-
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
