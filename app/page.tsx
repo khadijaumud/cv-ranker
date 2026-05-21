@@ -57,7 +57,7 @@ export default function Home() {
     files.forEach(file => formData.append("file", file));
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
+      const response = await fetch("https://cv-ranker-9b6t.onrender.com/analyze", {
         method: "POST",
         body: formData,
       });
