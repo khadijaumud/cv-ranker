@@ -54,7 +54,7 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append("job_description", jobDescription);
-    files.forEach(file => formData.append("files", file));
+    files.forEach(file => formData.append("file", file));
 
     try {
       const response = await fetch("http://127.0.0.1:8000/analyze", {
