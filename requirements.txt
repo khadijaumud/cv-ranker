@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-python-multipart
 groq
+python-multipart
+pydantic
 PyPDF2
-python-dotenv
