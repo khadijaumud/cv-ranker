@@ -91,7 +91,3 @@ Evaluates a candidate's resume based on specific job criteria.
 }
 
 ---
-
-## License
-
-This project is open-source and available under the MIT License.
